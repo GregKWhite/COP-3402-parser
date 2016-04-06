@@ -44,8 +44,9 @@ void factor();
 int relation();
 
 int generate(int a, int b, int c);
-int findToken(Token* token);
+int findInTable(char *ident);
 void insertConst(char* ident, char* val);
 void insertVar(char* ident, int level);
+void insertProc(char *ident); 
 
 #endif

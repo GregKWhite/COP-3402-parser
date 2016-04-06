@@ -49,6 +49,7 @@ void block() {
       if (token->type != identsym) {
         // Throw an error
       }
+      insertVar(token->val, 0); //TODO: Figure out how to insert level
       getToken();
     } while (token->type == commasym);
 
@@ -64,6 +65,7 @@ void block() {
     if (token->type != identsym) {
       // Throw an error
     }
+    insertProc(token->val);
     getToken();
     if (token->type != semicolonsym) {
       // Throw an error
@@ -80,7 +82,7 @@ void block() {
 
 void statement() {
   if (token->type == identsym) {
-    int i = findToken(token);
+    int i = findInTable(token->val);
     if (i == 0) {
       // Error undeclared identifier
     }
@@ -172,7 +174,7 @@ void term() {
 
 void factor() {
   if (token->type == identsym) {
-    int i = findToken(token);
+    int i = findInTable(token->val);
     if (i == 0) {
       // Error undeclared ident
     }
@@ -211,7 +213,7 @@ int relation() {
   return (token->type >= eqsym && token->type <= geqsym);
 }
 
-int findToken(Token* token) {
+int findInTable(char* ident) {
   return 0;
 }
 
@@ -221,9 +223,6 @@ void insertConst(char* ident, char* val) {
   sym->kind = consttype;
   strcpy(sym->name, ident);
   sym->val = atoi(val);
-
-  // Store the symbol in our table
-  symbolTable[symbolIndex++] = sym;
 }
 
 void insertVar(char *ident, int level) {
@@ -232,9 +231,6 @@ void insertVar(char *ident, int level) {
   sym->kind = vartype;
   strcpy(sym->name, ident);
   sym->level = level;
-
-  // Store the symbol in our table
-  symbolTable[symbolIndex++] = sym;
 }
 
 void insertProc(char* ident) {
@@ -242,6 +238,13 @@ void insertProc(char* ident) {
   Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
   sym->kind = proctype;
   strcpy(sym->name, ident);
+}
+
+void insertSym(Symbol* sym) {
+  // Return if the symbol already exists in the table
+  if (findInTable(sym->name)) {
+    return;
+  }
 
   // Store the symbol in our table
   symbolTable[symbolIndex++] = sym;
