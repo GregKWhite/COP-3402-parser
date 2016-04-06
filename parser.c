@@ -1,7 +1,8 @@
 #include "parser.h"
 
 Token* token = NULL;
-Symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
+Symbol* symbolTable[MAX_SYMBOL_TABLE_SIZE];
+int symbolIndex = 0;
 
 FILE* input;
 
@@ -19,6 +20,7 @@ void block() {
   if (token->type == constsym) {
     do {
       getToken();
+      Token* ident = token;
       if (token->type != identsym) {
         // Throw an error
       }
@@ -30,6 +32,7 @@ void block() {
       if (token->type != numbersym) {
         // Throw an error
       }
+      insertConst(ident->val, token->val);
       getToken();
     } while (token->type == commasym);
 
@@ -77,12 +80,22 @@ void block() {
 
 void statement() {
   if (token->type == identsym) {
+    int i = findToken(token);
+    if (i == 0) {
+      // Error undeclared identifier
+    }
+    Symbol* sym = symbolTable[i];
+    if (sym->kind != vartype) {
+      // Error cannot assign to proc or const
+    }
     getToken();
     if (token->type != becomessym) {
       // Throw an error
     }
     getToken();
     expression();
+
+    // gen(STO, sym->level, sym->addr);
   }
   else if (token->type == callsym) {
     getToken();
@@ -159,6 +172,20 @@ void term() {
 
 void factor() {
   if (token->type == identsym) {
+    int i = findToken(token);
+    if (i == 0) {
+      // Error undeclared ident
+    }
+    Symbol* sym = symbolTable[i];
+    if (sym->kind == vartype) {
+      // gen(LOD, sym->level, sym->addr);
+    }
+    else if (sym->kind == consttype) {
+      // gen(LIT, sym->level, sym->addr);
+    }
+    else {
+      // Error of some sort
+    }
     getToken();
   }
   else if (token->type == numbersym) {
@@ -182,6 +209,42 @@ void factor() {
 // 0 otherwise.
 int relation() {
   return (token->type >= eqsym && token->type <= geqsym);
+}
+
+int findToken(Token* token) {
+  return 0;
+}
+
+void insertConst(char* ident, char* val) {
+  // Create the new symbol from the information given
+  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
+  sym->kind = consttype;
+  strcpy(sym->name, ident);
+  sym->val = atoi(val);
+
+  // Store the symbol in our table
+  symbolTable[symbolIndex++] = sym;
+}
+
+void insertVar(char *ident, int level) {
+  // Create the new symbol from the information given
+  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
+  sym->kind = vartype;
+  strcpy(sym->name, ident);
+  sym->level = level;
+
+  // Store the symbol in our table
+  symbolTable[symbolIndex++] = sym;
+}
+
+void insertProc(char* ident) {
+  // Create the new symbol from the information given
+  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
+  sym->kind = proctype;
+  strcpy(sym->name, ident);
+
+  // Store the symbol in our table
+  symbolTable[symbolIndex++] = sym;
 }
 
 void getToken() {

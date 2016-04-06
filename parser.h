@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_SYMBOL_TABLE_SIZE 100
 #define MAX_IDENT_LEN 11
@@ -19,6 +20,10 @@ typedef enum {
   periodsym, becomessym, beginsym, endsym, ifsym, thensym,
   whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
   readsym , elsesym, unknownsym } token_type;
+
+typedef enum {
+  consttype = 1, vartype, proctype
+} symbol_type;
 
 typedef struct {
   int kind;      // const = 1, var = 2, proc = 3
@@ -37,5 +42,10 @@ void condition();
 void term();
 void factor();
 int relation();
+
+int generate(int a, int b, int c);
+int findToken(Token* token);
+void insertConst(char* ident, char* val);
+void insertVar(char* ident, int level);
 
 #endif
