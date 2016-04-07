@@ -1,0 +1,6 @@
+var x,y;
+begin
+  read x;
+  if x<0 then y:=0-x else y:=x;
+  write y;
+end.
