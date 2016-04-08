@@ -1,5 +1,3 @@
-#include "parser.h"
-
 // The array containing tokens from lexemelist.txt
 Token* tokenList[MAX_INSTRUCTIONS];
 int tokenCount = 0;
@@ -17,13 +15,12 @@ int level = -1;
 Instruction* instructions[MAX_INSTRUCTIONS];
 int instructionIndex = 0;
 
-int main() {
+void parse() {
   readTokens();
   program();
 
   // Let the user know the program is grammatically correct.
   printf("The program is gramatically correct.\n");
-  return 0;
 }
 
 void program() {
@@ -288,31 +285,12 @@ void condition() {
 }
 
 void expression() {
-  Token *addop = NULL;
-
   if (token->type == plussym || token->type == minussym) {
-    addop = token;
     getToken();
     term();
-    // Negate the term if we're subtracting
-    if (addop->type == minussym) {
-      /* generate(OPR, 0, NEG); */
-    }
-  }
-  else {
-    term();
-  }
-
-  while (token->type == plussym || token->type == minussym) {
-    addop = token;
-    getToken();
-    term();
-
-    if (addop->type == plussym) {
-      /* generate(OPR, 0, ADD); */
-    }
-    else {
-      /* generate(OPR, 0, SUB); */
+    while (token->type == plussym || token->type == minussym) {
+      getToken();
+      term();
     }
   }
 }
@@ -459,7 +437,7 @@ void readTokens() {
     if (curToken->type == identsym || curToken->type == numbersym) {
       fscanf(input, "%[^ \n]s", curToken->val);
     }
-    /* printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val); */
+    printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val);
 
     tokenList[tokenCount++] = curToken;
   }
