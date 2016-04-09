@@ -167,11 +167,10 @@ void procedure() {
 void statement() {
   printf("Parsing `statement`. Token is %d %s.\n", token->type, token->val);
   if (token->type == identsym) {
-    int i = findInTable(token->val);
-    if (i == 0) {
+    Symbol* sym = findInTable(token->val);
+    if (!sym) {
       error(11);
     }
-    Symbol* sym = symbolTable[i];
     if (sym->kind != vartype) {
       error(4);
     }
@@ -187,12 +186,10 @@ void statement() {
     /* generate(STO, level - sym->level, sym->addr); */
   }
   else if (token->type == callsym) {
-    int i = findInTable(token->val);
-    if (i == 0) {
+    Symbol* sym = findInTable(token->val);
+    if (!sym) {
       error(11);
     }
-
-    Symbol* sym = symbolTable[i];
 
     if (sym->kind != proctype) {
       error(15);
@@ -300,11 +297,10 @@ void factor() {
   printf("Parsing `factor`. Token is %d %s.\n", token->type, token->val);
 
   if (token->type == identsym) {
-    int i = findInTable(token->val);
-    if (i == 0) {
+    Symbol *sym = findInTable(token->val);
+    if (!sym) {
       // Error undeclared ident
     }
-    Symbol* sym = symbolTable[i];
     if (sym->kind == vartype) {
       /* generate(LOD, sym->level, sym->addr); */
     }
@@ -340,18 +336,15 @@ int relation() {
   return (token->type >= eqsym && token->type <= geqsym);
 }
 
-// Returns the index if a symbol is found in the symbol table.
-// 0 otherwise.
-//TODO: find a way to implement namespacing
-int findInTable(char* ident) {
+Symbol* findInTable(char *ident) {
   int i;
   for (i = 1; i < symbolIndex; i++) {
     if (strcmp(ident, symbolTable[i]->name) == 0) {
-      return i;
+      return symbolTable[i];
     }
   }
 
-  return 0;
+  return NULL;
 }
 
 void insertConst(char* ident, char* val) {

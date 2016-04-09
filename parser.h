@@ -46,7 +46,7 @@ void factor();
 int relation();
 
 void generate(int op, int l, int m);
-int findInTable(char *ident);
+Symbol* findInTable(char *ident);
 void insertConst(char* ident, char* val);
 void insertVar(char* ident, int level, int addr);
 void insertProc(char *ident); 
