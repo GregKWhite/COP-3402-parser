@@ -1,6 +1,4 @@
-input.txt
-lexemelist.txt
-lexemetable.txt
+*.txt
 compiler
 lexer
 parser

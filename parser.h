@@ -2,7 +2,7 @@
 #define PARSER_H
 
 char* errorCodes[] = {
-  "0. I was lazy and didn't do it yet.",
+  "", // This is just here so I don't have to index errors starting at 0
   "1. Use = instead of :=.",
   "2. = must be followed by a number.",
   "3. Identifier must be followed by =.",

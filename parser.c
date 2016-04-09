@@ -18,7 +18,10 @@ Instruction* instructions[MAX_INSTRUCTIONS];
 int instructionIndex = 0;
 
 void parse() {
+  // Read the tokens from lexemelist.txt into tokenList
   readTokens();
+
+  // Parse the program!
   program();
 
   // Let the user know the program is grammatically correct.
@@ -37,7 +40,6 @@ void program() {
 }
 
 void block() {
-  printf("Parsing `block`. Token is %d %s.\n", token->type, token->val);
 
   // Increase the level by one
   ++level;
@@ -68,22 +70,26 @@ void block() {
 
   // We're done with this block so we're going up a level
   --level;
-  printf("Finished parsing `block`. Token is %d %s.\n", token->type, token->val);
 }
 
 void constant() {
-  printf("Parsing `constant`. Token is %d %s.\n", token->type, token->val);
 
+  // Constants are of the form
+  // ident = number(, ident = number)*;
   do {
     getToken();
+    // Store the identifier so we can insert the constant into the
+    // symbol table.
     Token* ident = token;
     if (token->type != identsym) {
       error(4);
     }
+
     getToken();
     if (token->type != eqsym) {
       error(3);
     }
+
     getToken();
     if (token->type != numbersym) {
       error(2);
@@ -94,21 +100,22 @@ void constant() {
     getToken();
   } while (token->type == commasym);
 
+  // Constant declarations must end with a semicolon.
+  // If one is not found, throw an error.
   if (token->type != semicolonsym) {
     error(10);
   }
-  getToken();
 
-  printf("Finished parsing `constant`. Token is %d %s.\n", token->type, token->val);
+  getToken();
 }
 
 int variable() {
-  printf("Parsing `variable`. Token is %d %s.\n", token->type, token->val);
   // The number of variables declared.
   // We need this to know how much space to allocate
   // in our INC instruction in block()
   int numVariables = 0;
 
+  // Variables are of the form ident(, ident)*;
   do {
     // We're expecting an identifier; if we don't find one
     // we need to throw an error
@@ -140,67 +147,83 @@ int variable() {
   // so we can allocate space for them in
   // the block parsing
   return numVariables;
-  printf("Finished parsing `variable`. Token is %d %s.\n", token->type, token->val);
 }
 
-// I *think* this is done?
 void procedure() {
-  printf("Parsing `procedure`. Token is %d %s.\n", token->type, token->val);
+  // If 'procedure' isn't followed by an identifier, throw an error.
   getToken();
   if (token->type != identsym) {
     error(4);
   }
+
+  // Insert our procdure's identifier into the symbol table
   insertProc(token->val);
+
+  // If our procedure declaration isn't followed by a semicolon,
+  // throw an error.
   getToken();
   if (token->type != semicolonsym) {
     error(6);
   }
+
+  // After a procedure declaration, a block follows.
   getToken();
   block();
+
+  // If the block is not followed by a semicolon, throw an error
   if (token->type != semicolonsym) {
     error(10);
   }
+
   getToken();
-  printf("Finished parsing `procedure`. Token is %d %s.\n", token->type, token->val);
 }
 
 void statement() {
-  printf("Parsing `statement`. Token is %d %s.\n", token->type, token->val);
+  // If an identifier is found,
+  // we're looking for an assignment.
   if (token->type == identsym) {
+    // If the identifier is not in our table, throw an error
     Symbol* sym = findInTable(token->val);
     if (!sym) {
       error(11);
     }
+
+    // If the symbol is not a variable
+    // (it is a constant or procedure) throw an error
     if (sym->kind != vartype) {
       error(4);
     }
+
+    // If the next token is not :=
+    // throw an error.
     getToken();
     if (token->type != becomessym) {
       error(19);
     }
+
+    // Parse the expression that follows :=
     getToken();
     expression();
-
-    // Store the result in the variable's location offset
-    // by the level and its original address
-    /* generate(STO, level - sym->level, sym->addr); */
   }
+
+  // If 'call' is found, we're looking for
+  // a procedure identifier
   else if (token->type == callsym) {
+    // If the identifier is not in our table, throw an error
+    getToken();
     Symbol* sym = findInTable(token->val);
     if (!sym) {
       error(11);
     }
 
+    // If the symbol is not a procedure
+    // (it is a constant or variable) throw an error
     if (sym->kind != proctype) {
       error(15);
     }
 
-    // Call the procedure at the appropriate location
-    /* generate(CAL, level - sym->level, sym->addr); */
-
-    getToken();
     if (token->type != identsym) {
-      error(0);
+      error(14);
     }
 
     getToken();
@@ -213,7 +236,7 @@ void statement() {
       statement();
     }
     if (token->type != endsym) {
-      error(0);
+      error(8);
     }
     getToken();
   }
@@ -221,7 +244,7 @@ void statement() {
     getToken();
     condition();
     if (token->type != thensym) {
-      error(0);
+      error(16);
     }
     getToken();
 
@@ -237,7 +260,7 @@ void statement() {
     condition();
 
     if (token->type != dosym) {
-      error(0);
+      error(18);
     }
 
     getToken();
@@ -245,16 +268,25 @@ void statement() {
   }
   else if (token->type == writesym || token->type == readsym) {
     getToken();
+
+    // Read/write must be followed by an identifier.
     if (token->type != identsym) {
       error(0);
     }
+
+    // If the identifier doesn't exist,
+    // throw an error
+    Symbol *sym = findInTable(token->val);
+    if (!sym) {
+      // Undeclared identifier found
+      error(11);
+    }
+
     getToken();
   }
-  printf("Finished parsing `statement`. Token is %d %s.\n", token->type, token->val);
 }
 
 void condition() {
-  printf("Parsing `condition`. Token is %d %s.\n", token->type, token->val);
 
   if (token->type == oddsym) {
     getToken();
@@ -263,52 +295,37 @@ void condition() {
   else {
     expression();
     if (!relation()) {
-      error(0);
+      error(20);
     }
     getToken();
     expression();
   }
-  printf("Finished parsing `condition`. Token is %d %s.\n", token->type, token->val);
 }
 
 void expression() {
-  printf("Parsing `expression`. Token is %d %s.\n", token->type, token->val);
 
   term();
   while (token->type == plussym || token->type == minussym) {
     getToken();
     term();
   }
-  printf("Finished parsing `expression`. Token is %d %s.\n", token->type, token->val);
 }
 
 void term() {
-  printf("Parsing `term`. Token is %d %s.\n", token->type, token->val);
   factor();
 
   while (token->type == multsym || token->type == slashsym) {
     getToken();
     factor();
   }
-  printf("Finished parsing `term`. Token is %d %s.\n", token->type, token->val);
 }
 
 void factor() {
-  printf("Parsing `factor`. Token is %d %s.\n", token->type, token->val);
 
   if (token->type == identsym) {
     Symbol *sym = findInTable(token->val);
     if (!sym) {
-      // Error undeclared ident
-    }
-    if (sym->kind == vartype) {
-      /* generate(LOD, sym->level, sym->addr); */
-    }
-    else if (sym->kind == consttype) {
-      /* generate(LIT, sym->level, sym->addr); */
-    }
-    else {
-      // Error of some sort
+      error(11);
     }
     getToken();
   }
@@ -319,14 +336,15 @@ void factor() {
     getToken();
     expression();
     if (token->type != rparentsym) {
-      error(0);
+      error(22);
     }
     getToken();
   }
   else {
-    error(0);
+    printf("Token is %d %s\n", token->type, token->val);
+    // 23 i think?
+    error(23);
   }
-  printf("Finished parsing `factor`. Token is %d %s.\n", token->type, token->val);
 }
 
 // Returns 1 if the token's type
