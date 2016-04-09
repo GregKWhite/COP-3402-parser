@@ -1,3 +1,5 @@
+#include "compiler.h"
+
 void generateLexemes() {
   Token *token;
   Token *tokens[MAX_TOKENS];
@@ -203,14 +205,11 @@ Token* parseSpecialToken(char cur, Token *token, FILE *input) {
       break;
     // We can have '<', '<=', or '<>'
     case '<':
+      token->type = lessym;
       cur = getc(input);
       token->val[tokenLength++] = cur;
       if (cur == '>') token->type = neqsym;
       else if (cur == '=') token->type = leqsym;
-      else if (!isspace(cur)) {
-        fprintf(stderr, "ERROR: Unknown symbol '%s'.\n", token->val);
-        exit(EXIT_FAILURE);
-      }
       break;
     case ',':
       token->type = commasym;

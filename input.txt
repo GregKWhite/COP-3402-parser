@@ -1,29 +1,9 @@
-var
-x
-,
-y
-;
+procedure A;
+	var a;
 begin
-read
-x
-;
-if
-x
-<
-0
-then
-y
-:=
-0
--
-x
-else
-y
-:=
-x
-;
-write
-y
-;
-end
-.
+	a:=4;
+end;
+
+begin
+	a:=4;
+end.

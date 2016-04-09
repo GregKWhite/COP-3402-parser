@@ -3,7 +3,7 @@ HEADERS = compiler.h
 default: program
 
 program: 
-	gcc parser.c -o parser
+	gcc compiler.c -o compiler
 
 clean:
-	rm -f parser
+	rm -f compiler

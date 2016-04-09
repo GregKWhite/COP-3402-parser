@@ -1,3 +1,5 @@
+#include "compiler.h"
+
 // The array containing tokens from lexemelist.txt
 Token* tokenList[MAX_INSTRUCTIONS];
 int tokenCount = 0;
@@ -35,15 +37,13 @@ void program() {
 }
 
 void block() {
+  printf("Parsing `block`. Token is %d %s.\n", token->type, token->val);
+
   // Increase the level by one
   ++level;
 
   // The space needed for the return value, SL, DL, and return address
   int space = 4;
-
-  // Store the address we'll need to jump to when we're done with this block
-  /* int jumpAddress = instructionIndex; */
-  /* generate(JPC, 0, 0); */
 
   // Parse constants first.
   if (token->type == constsym) {
@@ -62,23 +62,18 @@ void block() {
     procedure();
   }
 
-  /* instructions[jumpAddress]->m = instructionIndex; */
-
-  // Allocate space for the variables and necessary AR stuff
-  /* generate(INC, 0, space); */
-
   // Parse a statement next, after we're done defining
   // constants, vars, and procedures
   statement();
 
-  //TODO: do some mumbo jumbo with symbol table index maybe
-  /* generate(OPR, 0, RTN); */
-
   // We're done with this block so we're going up a level
   --level;
+  printf("Finished parsing `block`. Token is %d %s.\n", token->type, token->val);
 }
 
 void constant() {
+  printf("Parsing `constant`. Token is %d %s.\n", token->type, token->val);
+
   do {
     getToken();
     Token* ident = token;
@@ -103,9 +98,12 @@ void constant() {
     error(10);
   }
   getToken();
+
+  printf("Finished parsing `constant`. Token is %d %s.\n", token->type, token->val);
 }
 
 int variable() {
+  printf("Parsing `variable`. Token is %d %s.\n", token->type, token->val);
   // The number of variables declared.
   // We need this to know how much space to allocate
   // in our INC instruction in block()
@@ -142,10 +140,12 @@ int variable() {
   // so we can allocate space for them in
   // the block parsing
   return numVariables;
+  printf("Finished parsing `variable`. Token is %d %s.\n", token->type, token->val);
 }
 
 // I *think* this is done?
 void procedure() {
+  printf("Parsing `procedure`. Token is %d %s.\n", token->type, token->val);
   getToken();
   if (token->type != identsym) {
     error(4);
@@ -161,9 +161,11 @@ void procedure() {
     error(10);
   }
   getToken();
+  printf("Finished parsing `procedure`. Token is %d %s.\n", token->type, token->val);
 }
 
 void statement() {
+  printf("Parsing `statement`. Token is %d %s.\n", token->type, token->val);
   if (token->type == identsym) {
     int i = findInTable(token->val);
     if (i == 0) {
@@ -226,14 +228,7 @@ void statement() {
     }
     getToken();
 
-    /* // Create a temporary jump */
-    /* int ctemp = instructionIndex; */
-    /* generate(JPC, 0, 0); */
-
     statement();
-
-    /* // Changes the JPC 0 0 to JPC 0 instructionIndex */
-    /* instructions[ctemp]->m = instructionIndex; */
 
     // else group optional
     if (token->type == elsesym) {
@@ -242,13 +237,7 @@ void statement() {
     }
   }
   else if (token->type == whilesym) {
-    /* int index1 = instructionIndex; */
-    /* getToken(); */
-
     condition();
-
-    /* int index2 = instructionIndex; */
-    /* generate(JPC, 0, 0); */
 
     if (token->type != dosym) {
       error(0);
@@ -256,9 +245,6 @@ void statement() {
 
     getToken();
     statement();
-
-    /* generate(JMP, 0, index1); */
-    /* instructions[index2]->m = instructionIndex; */
   }
   else if (token->type == writesym || token->type == readsym) {
     getToken();
@@ -267,9 +253,12 @@ void statement() {
     }
     getToken();
   }
+  printf("Finished parsing `statement`. Token is %d %s.\n", token->type, token->val);
 }
 
 void condition() {
+  printf("Parsing `condition`. Token is %d %s.\n", token->type, token->val);
+
   if (token->type == oddsym) {
     getToken();
     expression();
@@ -282,39 +271,34 @@ void condition() {
     getToken();
     expression();
   }
+  printf("Finished parsing `condition`. Token is %d %s.\n", token->type, token->val);
 }
 
 void expression() {
-  if (token->type == plussym || token->type == minussym) {
+  printf("Parsing `expression`. Token is %d %s.\n", token->type, token->val);
+
+  term();
+  while (token->type == plussym || token->type == minussym) {
     getToken();
     term();
-    while (token->type == plussym || token->type == minussym) {
-      getToken();
-      term();
-    }
   }
+  printf("Finished parsing `expression`. Token is %d %s.\n", token->type, token->val);
 }
 
 void term() {
-  Token* mulop = NULL;
-
+  printf("Parsing `term`. Token is %d %s.\n", token->type, token->val);
   factor();
 
   while (token->type == multsym || token->type == slashsym) {
-    mulop = token;
     getToken();
     factor();
-
-    if (mulop->type == multsym) {
-      /* generate(OPR, 0, MUL); */
-    }
-    else {
-      /* generate(OPR, 0, DIV); */
-    }
   }
+  printf("Finished parsing `term`. Token is %d %s.\n", token->type, token->val);
 }
 
 void factor() {
+  printf("Parsing `factor`. Token is %d %s.\n", token->type, token->val);
+
   if (token->type == identsym) {
     int i = findInTable(token->val);
     if (i == 0) {
@@ -346,6 +330,7 @@ void factor() {
   else {
     error(0);
   }
+  printf("Finished parsing `factor`. Token is %d %s.\n", token->type, token->val);
 }
 
 // Returns 1 if the token's type
