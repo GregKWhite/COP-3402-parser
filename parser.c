@@ -89,13 +89,6 @@ void constant() {
     // Identifiers must be followed by '='
     getToken();
     if (token->type != eqsym) {
-      // If the token is :=, alert the user that the wrong
-      // symbol was used.
-      if (token->type == becomessym) {
-        error(1);
-      }
-
-      // Otherwise alertthe user that the wrong symbol was used.
       error(3);
     }
 
@@ -221,6 +214,13 @@ void statement() {
     // throw an error.
     getToken();
     if (token->type != becomessym) {
+
+      // If the token is =, alert the user that the wrong
+      // symbol was used.
+      if (token->type == eqsym) {
+        error(1);
+      }
+
       error(19);
     }
 
@@ -258,11 +258,23 @@ void statement() {
     getToken();
     statement();
 
+    // If the next sym isn't a semicolon and isn't an end,
+    // throw an error
+    if (token->type != semicolonsym && token->type != endsym) {
+      error(10);
+    }
+
     // Statements are separated by semicolons.
     // Continue while the current statement ends with a semicolon.
     while (token->type == semicolonsym) {
       getToken();
       statement();
+
+      // If the next sym isn't a semicolon and isn't an end,
+      // throw an error
+      if (token->type != semicolonsym && token->type != endsym) {
+        error(10);
+      }
     }
 
     // If the statement doesn't end with "end",
