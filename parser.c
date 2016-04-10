@@ -10,17 +10,16 @@ int tokenIndex = 0;
 // The current token being examined
 Token* token;
 
-// The name of the current procedure being parsed.
+// An array containing the name of the procedure
+// at each lexical level
 char scopes[MAX_LEXI_LEVEL][MAX_IDENT_LEN+1];
 
+// Contains all symbols in the symbol table.
 Symbol* symbolTable[MAX_SYMBOL_TABLE_SIZE];
 int symbolIndex = 0;
 
 // The current block level
 int level = 0;
-
-Instruction* instructions[MAX_INSTRUCTIONS];
-int instructionIndex = 0;
 
 int main() {
   // Read the tokens from lexemelist.txt into tokenList
@@ -30,13 +29,14 @@ int main() {
   program();
 
   // Let the user know the program is grammatically correct.
-  printf("The program is gramatically correct.\n");
+  printf("No errors, program is syntactically correct.");
 
   // Print the symbol list to symlist.txt
   printSymbolsTable();
 }
 
 void program() {
+  // Parse the required block.
   getToken();
   block();
 
@@ -115,7 +115,7 @@ void constant() {
 int variable() {
   // The number of variables declared.
   // We need this to know how much space to allocate
-  // in our INC instruction in block()
+  // for the variables we're storing.
   int numVariables = 0;
 
   // Variables are of the form ident(, ident)*;
@@ -168,7 +168,7 @@ void procedure() {
   strcpy(scopes[level], token->val);
 
   // Insert our procdure's identifier into the symbol table.
-  // Because we aren't generating code, I'm settings its `val`
+  // Because we aren't generating code, I'm settings its val
   // to -1.
   insertSym(token->val, -1, proctype);
 
@@ -225,11 +225,18 @@ void statement() {
   // If 'call' is found, we're looking for
   // a procedure identifier
   else if (token->type == callsym) {
+
     // If the identifier is not in our table, throw an error
     getToken();
     Symbol* sym = findInTable(token->val);
     if (!sym) {
       error(11);
+    }
+
+    // If "call" is not followed by an identifier,
+    // throw an error.
+    if (token->type != identsym) {
+      error(14);
     }
 
     // If the symbol is not a procedure
@@ -238,47 +245,59 @@ void statement() {
       error(15);
     }
 
-    if (token->type != identsym) {
-      error(14);
-    }
-
     getToken();
   }
   else if (token->type == beginsym) {
     getToken();
     statement();
+
+    // Statements are separated by semicolons.
+    // Continue while the current statement ends with a semicolon.
     while (token->type == semicolonsym) {
       getToken();
       statement();
     }
+
+    // If the statement doesn't end with "end",
+    // throw an error.
     if (token->type != endsym) {
       error(8);
     }
+
     getToken();
   }
   else if (token->type == ifsym) {
+
+    // Parse the conditional for the "if" statement.
     getToken();
     condition();
+
+    // "if" must be followed by "then".
     if (token->type != thensym) {
       error(16);
     }
-    getToken();
 
+    // Parse the statement following the "then"
+    getToken();
     statement();
 
-    // else group optional
+    // Else group is optional.
     if (token->type == elsesym) {
       getToken();
       statement();
     }
   }
   else if (token->type == whilesym) {
+    // Parse the condition following the "while"
     condition();
 
+    // If the condition isn't followed by "do",
+    // throw an error.
     if (token->type != dosym) {
       error(18);
     }
 
+    // Parse the statement after the "do"
     getToken();
     statement();
   }
@@ -303,24 +322,33 @@ void statement() {
 }
 
 void condition() {
-
+  // If the token is oddsym,
+  // the condition is "oddsym expression"
   if (token->type == oddsym) {
     getToken();
     expression();
   }
+
+  // Otherwise, the condition is "expression rel-op expression"
   else {
     expression();
+
+    // If we don't find a relation operator,
+    // throw an error.
     if (!relation()) {
       error(20);
     }
+
     getToken();
     expression();
   }
 }
 
 void expression() {
-
+  // Parse the required term.
   term();
+
+  // Continue to parse terms while the next symbol is a + or -
   while (token->type == plussym || token->type == minussym) {
     getToken();
     term();
@@ -328,8 +356,10 @@ void expression() {
 }
 
 void term() {
+  // Parse the required factor.
   factor();
 
+  // Continue to parse factors while the next symbol is a * or /
   while (token->type == multsym || token->type == slashsym) {
     getToken();
     factor();
@@ -337,7 +367,8 @@ void term() {
 }
 
 void factor() {
-
+  // If we have an identifier, make sure it's declared
+  // in an appropriate scope.
   if (token->type == identsym) {
     Symbol *sym = findInTable(token->val);
     if (!sym) {
@@ -345,20 +376,34 @@ void factor() {
     }
     getToken();
   }
+
+  // If we've got a number, we're good to go.
+  // No further actions to take.
   else if (token->type == numbersym) {
     getToken();
   }
+
+  // If we have a left parenthesis,
+  // parse the expression inside and 
+  // look for its matching right parenthesis.
   else if (token->type == lparentsym) {
     getToken();
     expression();
+
+    // If there is no matching right parenthesis,
+    // it is a malformed expression so we throw
+    // an error.
     if (token->type != rparentsym) {
       error(22);
     }
+
     getToken();
   }
+
+  // Otherwise, we know the parent expression cannot begin
+  // with the current token.
   else {
-    // 23 i think?
-    error(23);
+    error(24);
   }
 }
 
@@ -375,13 +420,14 @@ Symbol* findInTable(char *ident) {
   // Traverse the symbols in reverse order
   // to find the symbol in the closest scope.
   for (i = symbolIndex - 1; i >= 0; i--) {
+
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
+
       // If the level is the same, make sure that the current procedure
       // is the same as the procedure this is defined in.
       if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
-        // printf("Symbol procIdent: %s\t, procIdent: %s\n", symbolTable[i]->procIdent, scopes[level]);
         return NULL;
       }
     }
@@ -401,7 +447,9 @@ void insertSym(char *ident, int val, int kind) {
     return;
   }
 
-  // Store the symbol in our table
+  // Create the new symbol to store in our symbol table.
+  // We default the procIdent to "" so we don't get a segfault
+  // later when we read its value.
   Symbol* sym = (Symbol*)(malloc(sizeof(Symbol)));
   strcpy(sym->name, ident);
   strcpy(sym->procIdent, "");
@@ -416,16 +464,6 @@ void insertSym(char *ident, int val, int kind) {
   }
 
   symbolTable[symbolIndex++] = sym;
-}
-
-// Generates an instruction
-void generate(int op, int l, int m) {
-  Instruction *inst = (Instruction*)(malloc(sizeof(Instruction)));
-  inst->op = op;
-  inst->l = l;
-  inst->m = m;
-
-  instructions[instructionIndex++] = inst;
 }
 
 void readTokens() {
@@ -453,7 +491,6 @@ void readTokens() {
       // Print the current token to the user.
       printf("%s ", curToken->val);
     }
-    // printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val);
 
     tokenList[tokenCount++] = curToken;
   }
@@ -463,6 +500,7 @@ void readTokens() {
 }
 
 void getToken() {
+  // Set the global token pointer to the next token in the array.
   token = tokenList[tokenIndex++];
 
   // If the token is NULL, we just initialize an empty token.
@@ -508,7 +546,6 @@ void printSymbolsTable() {
 }
 
 void error(int code) {
-  // fprintf(stderr, "Line %d.\t", tokenIndex);
   fprintf(stderr, "%s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }

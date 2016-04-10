@@ -49,13 +49,9 @@ void term();
 void factor();
 int relation();
 
-void generate(int op, int l, int m);
 Symbol* findInTable(char *ident);
 void insertSym(char* ident, int val, int kind);
-void printInstructions();
 void printSymbolsTable();
 void error(int code);
-
-void debug();
 
 #endif
