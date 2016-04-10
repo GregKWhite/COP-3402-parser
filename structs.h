@@ -25,6 +25,7 @@ typedef struct {
     int val;       // number (ASCII value)
     int level;     // L level
     int addr;      // M address
+    char procIdent[MAX_IDENT_LEN+1]; // name of the procedure declared in
 } Symbol;
 
 // Represents each line of input

@@ -10,6 +10,9 @@ int tokenIndex = 0;
 // The current token being examined
 Token* token;
 
+// The name of the current procedure being parsed.
+char scopes[MAX_LEXI_LEVEL][MAX_IDENT_LEN+1];
+
 Symbol* symbolTable[MAX_SYMBOL_TABLE_SIZE];
 int symbolIndex = 1;
 
@@ -162,6 +165,7 @@ void procedure() {
   // Store the identifier of the current procedure.
   // This is used to implement namespacing so that
   // variables cannot be used outside of their scope.
+  strcpy(scopes[level], token->val);
 
   // Insert our procdure's identifier into the symbol table.
   // Because we aren't generating code, I'm settings its `val`
@@ -364,7 +368,21 @@ int relation() {
 
 Symbol* findInTable(char *ident) {
   int i;
-  for (i = 1; i < symbolIndex; i++) {
+
+  // Traverse the symbols in reverse order
+  // to find the symbol in the closest scope.
+  for (i = symbolIndex - 1; i >= 1; i--) {
+    // Check to see that the identifiers are in the same
+    // or higher schope.
+    if (symbolTable[i]->level <= level) {
+      // If the level is the same, make sure that the current procedure
+      // is the same as the procedure this is defined in.
+      if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
+        return NULL;
+      }
+    }
+
+    // Check to see that the identifiers have the same name
     if (strcmp(ident, symbolTable[i]->name) == 0) {
       return symbolTable[i];
     }
@@ -382,8 +400,21 @@ void insertSym(char *ident, int val, int kind) {
   // Store the symbol in our table
   Symbol* sym = (Symbol*)(malloc(sizeof(Symbol)));
   strcpy(sym->name, ident);
+  strcpy(sym->procIdent, "");
   sym->val = val;
   sym->kind = kind;
+
+  // If we have a variable or a constant,
+  // store its level as well.
+  // Otherwise store a default value of -1
+  sym->level = (kind != procsym) ? level : -1;
+
+  // If the symbol is a variable/constant,
+  // store the name of the procedure it is defined in.
+  if (kind != procsym) {
+    strcpy(sym->procIdent, scopes[level]);
+  }
+
   symbolTable[symbolIndex++] = sym;
 }
 
