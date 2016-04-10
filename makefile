@@ -1,9 +1,9 @@
-HEADERS = compiler.h
+HEADERS = parser.h
 
 default: program
 
-program: 
-	gcc compiler.c -o compiler
+program:
+	gcc parser.c -o parser
 
 clean:
-	rm -f compiler
+	rm -f parser

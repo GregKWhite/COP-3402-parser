@@ -1,4 +1,6 @@
-#include "compiler.h"
+#include "constants.h"
+#include "structs.h"
+#include "parser.h"
 
 // The array containing tokens from lexemelist.txt
 Token* tokenList[MAX_INSTRUCTIONS];
@@ -17,7 +19,7 @@ int level = -1;
 Instruction* instructions[MAX_INSTRUCTIONS];
 int instructionIndex = 0;
 
-void parse() {
+int main() {
   // Read the tokens from lexemelist.txt into tokenList
   readTokens();
 
@@ -452,7 +454,7 @@ void printInstructions() {
 }
 
 void error(int code) {
-  fprintf(stderr, "Line %d.\t", tokenIndex); 
+  fprintf(stderr, "Line %d.\t", tokenIndex);
   fprintf(stderr, "%s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }

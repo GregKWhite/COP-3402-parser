@@ -1,6 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 char* errorCodes[] = {
   "", // This is just here so I don't have to index errors starting at 0
   "1. Use = instead of :=.",
@@ -30,7 +34,7 @@ char* errorCodes[] = {
   "25. This number is too large.",
 };
 
-void parse();
+int main();
 void readTokens();
 void getToken();
 void program();
@@ -49,7 +53,7 @@ void generate(int op, int l, int m);
 Symbol* findInTable(char *ident);
 void insertConst(char* ident, char* val);
 void insertVar(char* ident, int level, int addr);
-void insertProc(char *ident); 
+void insertProc(char *ident);
 void insertSym(Symbol* sym);
 void printInstructions();
 void error(int code);
