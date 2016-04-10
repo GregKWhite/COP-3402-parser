@@ -42,7 +42,6 @@ void program() {
 }
 
 void block() {
-
   // Increase the level by one
   ++level;
 
@@ -443,18 +442,18 @@ void readTokens() {
 
 void getToken() {
   token = tokenList[tokenIndex++];
-}
 
-void printInstructions() {
-  int i;
-  for (i = 0; i < instructionIndex; i++) {
-    Instruction* inst = instructions[i];
-    printf("%d\t%d\t%d\n", inst->op, inst->l, inst->m);
+  // If the token is NULL, we just initialize an empty token.
+  // This is so we don't get a segfault later on if we read NULL token.
+  if (!token) {
+    token = (Token*)(malloc(sizeof(Token)));
+    strcpy(token->val, "");
+    token->type = unknownsym;
   }
 }
 
 void error(int code) {
-  fprintf(stderr, "Line %d.\t", tokenIndex);
+  // fprintf(stderr, "Line %d.\t", tokenIndex);
   fprintf(stderr, "%s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }
