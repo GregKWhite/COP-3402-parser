@@ -32,6 +32,7 @@ char* errorCodes[] = {
   "23. The preceding factor cannot begin with this symbol.",
   "24. An expression cannot begin with this symbol.",
   "25. This number is too large.",
+  "26. Read and write must be followed by an identifier."
 };
 
 int main();

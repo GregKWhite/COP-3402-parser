@@ -89,6 +89,13 @@ void constant() {
     // Identifiers must be followed by '='
     getToken();
     if (token->type != eqsym) {
+      // If the token is :=, alert the user that the wrong
+      // symbol was used.
+      if (token->type == becomessym) {
+        error(1);
+      }
+
+      // Otherwise alertthe user that the wrong symbol was used.
       error(3);
     }
 
@@ -306,7 +313,7 @@ void statement() {
 
     // Read/write must be followed by an identifier.
     if (token->type != identsym) {
-      error(0);
+      error(26);
     }
 
     // If the identifier doesn't exist,
