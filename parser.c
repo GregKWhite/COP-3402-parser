@@ -546,6 +546,6 @@ void printSymbolsTable() {
 }
 
 void error(int code) {
-  fprintf(stderr, "%s", errorCodes[code]);
+  fprintf(stderr, "Error Code %s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }
