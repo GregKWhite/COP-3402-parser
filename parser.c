@@ -471,20 +471,31 @@ void printSymbolsTable() {
   Symbol* currentSym;
   int i;
 
-  printf("Name\tType\tLevel\tValue\n");
+  fprintf(output, "Name\tType\tLevel\tValue\n");
   for (i = 0; i < symbolIndex; i++) {
     currentSym = symbolTable[i];
-    printf("%s\t", currentSym->name);
 
+    // Print the symbol's name
+    fprintf(output, "%s\t", currentSym->name);
+
+    // Print the symbol's type
     switch (currentSym->kind) {
-      case consttype: printf("%s\t", "const"); break;
-      case vartype: printf("%s\t", "var"); break;
-      case proctype: printf("%s\t", "proc"); break;
-      default: printf("type is %d\t", currentSym->kind); exit(0);
+      case consttype: fprintf(output, "%s\t", "const"); break;
+      case vartype: fprintf(output, "%s\t", "var"); break;
+      case proctype: fprintf(output, "%s\t", "proc"); break;
+      default: fprintf(output, "type is %d\t", currentSym->kind); exit(0);
     }
 
-    printf("%d\t", currentSym->level);
-    printf("%d\n", currentSym->val);
+    // Print the level
+    fprintf(output, "%d\t", currentSym->level);
+
+    // Print the val unless it's a procedure,
+    // meaning val == -1
+    if (currentSym->val == -1){
+      fprintf(output, "\n");
+    } else {
+      fprintf(output, "%d\n", currentSym->val);
+    }
   }
 }
 

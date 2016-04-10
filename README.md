@@ -2,7 +2,6 @@
 Parser for COP 3402 Spring 2016
 
 ##### TODO
-* Implement the `-l` directive.
 * Add additional comments explaining the parsing process
 * Thoroughly test this. I'm fairly confident it will handle basic examples, but
   I'm pretty sure it has its fair share of bugs.
