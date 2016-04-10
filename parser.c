@@ -29,11 +29,11 @@ int main() {
   // Parse the program!
   program();
 
+  // Let the user know the program is grammatically correct.
+  printf("The program is gramatically correct.\n\n");
+
   // Print the symbol list to symlist.txt
   printSymbolsTable();
-
-  // Let the user know the program is grammatically correct.
-  printf("The program is gramatically correct.\n");
 }
 
 void program() {
@@ -105,7 +105,7 @@ void constant() {
     }
 
     // Insert the constant into our symbol table
-    insertSym(ident->val, atoi(token->val), constsym);
+    insertSym(ident->val, atoi(token->val), consttype);
     getToken();
   } while (token->type == commasym);
 
@@ -137,7 +137,7 @@ int variable() {
     // We use numVariables + 4 to indicate its position
     // in the current AR; starting at 4 since its offset is
     // 4 by default.
-    insertSym(token->val, numVariables + 4, varsym);
+    insertSym(token->val, numVariables + 4, vartype);
     getToken();
 
     // Create space for each of the variables
@@ -173,7 +173,7 @@ void procedure() {
   // Insert our procdure's identifier into the symbol table.
   // Because we aren't generating code, I'm settings its `val`
   // to -1.
-  insertSym(token->val, -1, procsym);
+  insertSym(token->val, -1, proctype);
 
   // If our procedure declaration isn't followed by a semicolon,
   // throw an error.
@@ -195,7 +195,6 @@ void procedure() {
 }
 
 void statement() {
-  printf("Level is %d\n", level);
   // If an identifier is found,
   // we're looking for an assignment.
   if (token->type == identsym) {
@@ -207,7 +206,7 @@ void statement() {
 
     // If the symbol is not a variable
     // (it is a constant or procedure) throw an error
-    if (sym->kind != varsym) {
+    if (sym->kind != vartype) {
       error(12);
     }
 
@@ -379,11 +378,11 @@ Symbol* findInTable(char *ident) {
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
-      printf("Symbol name: %s\tSymbol level: %d\tLevel: %d\n", symbolTable[i]->name, symbolTable[i]->level, level);
+      // printf("Symbol name: %s\tSymbol level: %d\tLevel: %d\n", symbolTable[i]->name, symbolTable[i]->level, level);
       // If the level is the same, make sure that the current procedure
       // is the same as the procedure this is defined in.
       if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
-        printf("Symbol procIdent: %s\t, procIdent: %s\n", symbolTable[i]->procIdent, scopes[level]);
+        // printf("Symbol procIdent: %s\t, procIdent: %s\n", symbolTable[i]->procIdent, scopes[level]);
         return NULL;
       }
     }
@@ -449,7 +448,7 @@ void readTokens() {
     if (curToken->type == identsym || curToken->type == numbersym) {
       fscanf(input, "%[^ \n]s", curToken->val);
     }
-    printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val);
+    // printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val);
 
     tokenList[tokenCount++] = curToken;
   }
@@ -472,24 +471,25 @@ void printSymbolsTable() {
   Symbol* currentSym;
   int i;
 
-  fprintf(output, "Name\tType\tLevel\tValue\n");
+  printf("Name\tType\tLevel\tValue\n");
   for (i = 0; i < symbolIndex; i++) {
     currentSym = symbolTable[i];
-    fprintf(output, "%s\t", currentSym->name);
+    printf("%s\t", currentSym->name);
 
     switch (currentSym->kind) {
-      case consttype: fprintf(output, "%s\t", "const"); break;
-      case vartype: fprintf(output, "%s\t", "var"); break;
-      case proctype: fprintf(output, "%s\t", "proc"); break;
+      case consttype: printf("%s\t", "const"); break;
+      case vartype: printf("%s\t", "var"); break;
+      case proctype: printf("%s\t", "proc"); break;
+      default: printf("type is %d\t", currentSym->kind); exit(0);
     }
 
-    fprintf(output, "%s\t", currentSym->level);
-    fprintf(output, "%s\n", currentSym->val);
+    printf("%d\t", currentSym->level);
+    printf("%d\n", currentSym->val);
   }
 }
 
 void error(int code) {
-  fprintf(stderr, "Line %d.\t", tokenIndex);
+  // fprintf(stderr, "Line %d.\t", tokenIndex);
   fprintf(stderr, "%s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }
