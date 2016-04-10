@@ -7,3 +7,4 @@ program:
 
 clean:
 	rm -f parser
+	rm -f symlist.txt

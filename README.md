@@ -2,9 +2,7 @@
 Parser for COP 3402 Spring 2016
 
 ##### TODO
-* Add additional comments explaining the parsing process
-* Thoroughly test this. I'm fairly confident it will handle basic examples, but
-  I'm pretty sure it has its fair share of bugs.
+* Thoroughly test this.
 * Write the documentation PDF
 
 ### Instructions
@@ -12,12 +10,16 @@ To use the code in this repo:
 * `$ git pull git@github.com:GregKWhite/COP-3402-parser.git`
 * `$ cd COP-3402-parser`
 
-To build the parser:
-* `$ make`
+To remove leftover files from the previous run and rebuild the parser:
+* `$ make clean ; make`
 
 To run the parser:
 * `$ ./parser`
-  + If the program is correct, it will print out "The program is gramatically
-    correct."
-  + If it is not, it will throw a (hopefully) appropriate error, telling you the
-    grammatical error, along with the token it occurred on.
+  + The program will print the contents of `lexemelist.txt` as required.
+  + If the program is correct, it will print out "No errors, program is
+    syntactically correct."
+  + If it is not, it will throw an appropriate error, telling you the
+    syntactical error.
+
+To check the contents of `symlist.txt`:
+* `$ cat symlist.txt`
