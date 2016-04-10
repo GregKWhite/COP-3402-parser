@@ -14,7 +14,7 @@ Token* token;
 char scopes[MAX_LEXI_LEVEL][MAX_IDENT_LEN+1];
 
 Symbol* symbolTable[MAX_SYMBOL_TABLE_SIZE];
-int symbolIndex = 1;
+int symbolIndex = 0;
 
 // The current block level
 int level = -1;
@@ -28,6 +28,9 @@ int main() {
 
   // Parse the program!
   program();
+
+  // Print the symbol list to symlist.txt
+  printSymbolsTable();
 
   // Let the user know the program is grammatically correct.
   printf("The program is gramatically correct.\n");
@@ -192,6 +195,7 @@ void procedure() {
 }
 
 void statement() {
+  printf("Level is %d\n", level);
   // If an identifier is found,
   // we're looking for an assignment.
   if (token->type == identsym) {
@@ -371,13 +375,15 @@ Symbol* findInTable(char *ident) {
 
   // Traverse the symbols in reverse order
   // to find the symbol in the closest scope.
-  for (i = symbolIndex - 1; i >= 1; i--) {
+  for (i = symbolIndex - 1; i >= 0; i--) {
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
+      printf("Symbol name: %s\tSymbol level: %d\tLevel: %d\n", symbolTable[i]->name, symbolTable[i]->level, level);
       // If the level is the same, make sure that the current procedure
       // is the same as the procedure this is defined in.
       if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
+        printf("Symbol procIdent: %s\t, procIdent: %s\n", symbolTable[i]->procIdent, scopes[level]);
         return NULL;
       }
     }
@@ -403,11 +409,7 @@ void insertSym(char *ident, int val, int kind) {
   strcpy(sym->procIdent, "");
   sym->val = val;
   sym->kind = kind;
-
-  // If we have a variable or a constant,
-  // store its level as well.
-  // Otherwise store a default value of -1
-  sym->level = (kind != procsym) ? level : -1;
+  sym->level = level;
 
   // If the symbol is a variable/constant,
   // store the name of the procedure it is defined in.
@@ -462,6 +464,27 @@ void getToken() {
     token = (Token*)(malloc(sizeof(Token)));
     strcpy(token->val, "");
     token->type = unknownsym;
+  }
+}
+
+void printSymbolsTable() {
+  FILE *output = fopen("symlist.txt" ,"w");
+  Symbol* currentSym;
+  int i;
+
+  fprintf(output, "Name\tType\tLevel\tValue\n");
+  for (i = 0; i < symbolIndex; i++) {
+    currentSym = symbolTable[i];
+    fprintf(output, "%s\t", currentSym->name);
+
+    switch (currentSym->kind) {
+      case consttype: fprintf(output, "%s\t", "const"); break;
+      case vartype: fprintf(output, "%s\t", "var"); break;
+      case proctype: fprintf(output, "%s\t", "proc"); break;
+    }
+
+    fprintf(output, "%s\t", currentSym->level);
+    fprintf(output, "%s\n", currentSym->val);
   }
 }
 
