@@ -30,7 +30,7 @@ int main() {
   program();
 
   // Let the user know the program is grammatically correct.
-  printf("The program is gramatically correct.\n\n");
+  printf("The program is gramatically correct.\n");
 
   // Print the symbol list to symlist.txt
   printSymbolsTable();
@@ -442,16 +442,25 @@ void readTokens() {
     // Read the next token type from the lexeme list.
     fscanf(input, "%d ", &curToken->type);
 
+    // Print the current token to the user.
+    printf("%d ", curToken->type);
+
     // If the token type is identsym or numbersym,
     // read the next token as well, as we need the
     // value associated with the symbol type
     if (curToken->type == identsym || curToken->type == numbersym) {
       fscanf(input, "%[^ \n]s", curToken->val);
+
+      // Print the current token to the user.
+      printf("%s ", curToken->val);
     }
     // printf("%d.\t%d\t%s\n", tokenCount, curToken->type, curToken->val);
 
     tokenList[tokenCount++] = curToken;
   }
+
+  // Print a newline for formatting sake
+  printf("\n\n");
 }
 
 void getToken() {
