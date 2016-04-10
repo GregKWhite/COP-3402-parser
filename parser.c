@@ -86,18 +86,20 @@ void constant() {
       error(4);
     }
 
+    // Identifiers must be followed by '='
     getToken();
     if (token->type != eqsym) {
       error(3);
     }
 
+    // '=' must be followed by a number.
     getToken();
     if (token->type != numbersym) {
       error(2);
     }
 
     // Insert the constant into our symbol table
-    insertConst(ident->val, token->val);
+    insertSym(ident->val, atoi(token->val), constsym);
     getToken();
   } while (token->type == commasym);
 
@@ -129,7 +131,7 @@ int variable() {
     // We use numVariables + 4 to indicate its position
     // in the current AR; starting at 4 since its offset is
     // 4 by default.
-    insertVar(token->val, level, numVariables + 4);
+    insertSym(token->val, numVariables + 4, varsym);
     getToken();
 
     // Create space for each of the variables
@@ -157,8 +159,14 @@ void procedure() {
     error(4);
   }
 
-  // Insert our procdure's identifier into the symbol table
-  insertProc(token->val);
+  // Store the identifier of the current procedure.
+  // This is used to implement namespacing so that
+  // variables cannot be used outside of their scope.
+
+  // Insert our procdure's identifier into the symbol table.
+  // Because we aren't generating code, I'm settings its `val`
+  // to -1.
+  insertSym(token->val, -1, procsym);
 
   // If our procedure declaration isn't followed by a semicolon,
   // throw an error.
@@ -191,8 +199,8 @@ void statement() {
 
     // If the symbol is not a variable
     // (it is a constant or procedure) throw an error
-    if (sym->kind != vartype) {
-      error(4);
+    if (sym->kind != varsym) {
+      error(12);
     }
 
     // If the next token is not :=
@@ -342,7 +350,6 @@ void factor() {
     getToken();
   }
   else {
-    printf("Token is %d %s\n", token->type, token->val);
     // 23 i think?
     error(23);
   }
@@ -366,46 +373,17 @@ Symbol* findInTable(char *ident) {
   return NULL;
 }
 
-void insertConst(char* ident, char* val) {
-  // Create the new symbol from the information given
-  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
-  sym->kind = consttype;
-  strcpy(sym->name, ident);
-  sym->val = atoi(val);
-
-  sym->level = 0;
-  sym->addr = 0;
-
-  insertSym(sym);
-}
-
-void insertVar(char *ident, int level, int addr) {
-  // Create the new symbol from the information given
-  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
-  sym->kind = vartype;
-  strcpy(sym->name, ident);
-  sym->level = level;
-  sym->addr = addr;
-
-  insertSym(sym);
-}
-
-void insertProc(char* ident) {
-  // Create the new symbol from the information given
-  Symbol *sym = (Symbol*)(malloc(sizeof(Symbol)));
-  sym->kind = proctype;
-  strcpy(sym->name, ident);
-
-  insertSym(sym);
-}
-
-void insertSym(Symbol* sym) {
+void insertSym(char *ident, int val, int kind) {
   // Return if the symbol already exists in the table
-  if (findInTable(sym->name)) {
+  if (findInTable(ident)) {
     return;
   }
 
   // Store the symbol in our table
+  Symbol* sym = (Symbol*)(malloc(sizeof(Symbol)));
+  strcpy(sym->name, ident);
+  sym->val = val;
+  sym->kind = kind;
   symbolTable[symbolIndex++] = sym;
 }
 
@@ -423,6 +401,10 @@ void readTokens() {
   FILE *input = fopen("lexemelist.txt", "r");
   while (!feof(input)) {
     Token *curToken = (Token*)malloc(sizeof(Token));
+
+    // Copy the default value of "" to the token value.
+    // This ensures that we won't segfault by trying to read
+    // an uninitialized value later on.
     strcpy(curToken->val, "");
 
     // Read the next token type from the lexeme list.
@@ -453,7 +435,7 @@ void getToken() {
 }
 
 void error(int code) {
-  // fprintf(stderr, "Line %d.\t", tokenIndex);
+  fprintf(stderr, "Line %d.\t", tokenIndex);
   fprintf(stderr, "%s", errorCodes[code]);
   exit(EXIT_FAILURE);
 }

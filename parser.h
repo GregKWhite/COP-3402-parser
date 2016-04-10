@@ -51,10 +51,7 @@ int relation();
 
 void generate(int op, int l, int m);
 Symbol* findInTable(char *ident);
-void insertConst(char* ident, char* val);
-void insertVar(char* ident, int level, int addr);
-void insertProc(char *ident);
-void insertSym(Symbol* sym);
+void insertSym(char* ident, int val, int kind);
 void printInstructions();
 void error(int code);
 
