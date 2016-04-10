@@ -153,9 +153,6 @@ int variable() {
 }
 
 void procedure() {
-  // Increase the level by one
-  ++level;
-
   // If 'procedure' isn't followed by an identifier, throw an error.
   getToken();
   if (token->type != identsym) {
@@ -171,6 +168,9 @@ void procedure() {
   // Because we aren't generating code, I'm settings its val
   // to -1.
   insertSym(token->val, -1, proctype);
+
+  // Increase the level by one
+  ++level;
 
   // If our procedure declaration isn't followed by a semicolon,
   // throw an error.
@@ -384,7 +384,7 @@ void factor() {
   }
 
   // If we have a left parenthesis,
-  // parse the expression inside and 
+  // parse the expression inside and
   // look for its matching right parenthesis.
   else if (token->type == lparentsym) {
     getToken();
@@ -424,17 +424,16 @@ Symbol* findInTable(char *ident) {
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
-
       // If the level is the same, make sure that the current procedure
       // is the same as the procedure this is defined in.
       if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
-        return NULL;
+        continue;
       }
-    }
 
-    // Check to see that the identifiers have the same name
-    if (strcmp(ident, symbolTable[i]->name) == 0) {
-      return symbolTable[i];
+      // Check to see that the identifiers have the same name
+      if (strcmp(ident, symbolTable[i]->name) == 0) {
+        return symbolTable[i];
+      }
     }
   }
 
