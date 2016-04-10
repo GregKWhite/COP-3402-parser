@@ -17,7 +17,7 @@ Symbol* symbolTable[MAX_SYMBOL_TABLE_SIZE];
 int symbolIndex = 0;
 
 // The current block level
-int level = -1;
+int level = 0;
 
 Instruction* instructions[MAX_INSTRUCTIONS];
 int instructionIndex = 0;
@@ -48,9 +48,6 @@ void program() {
 }
 
 void block() {
-  // Increase the level by one
-  ++level;
-
   // The space needed for the return value, SL, DL, and return address
   int space = 4;
 
@@ -74,9 +71,6 @@ void block() {
   // Parse a statement next, after we're done defining
   // constants, vars, and procedures
   statement();
-
-  // We're done with this block so we're going up a level
-  --level;
 }
 
 void constant() {
@@ -159,6 +153,9 @@ int variable() {
 }
 
 void procedure() {
+  // Increase the level by one
+  ++level;
+
   // If 'procedure' isn't followed by an identifier, throw an error.
   getToken();
   if (token->type != identsym) {
@@ -192,6 +189,9 @@ void procedure() {
   }
 
   getToken();
+
+  // We're done with this procedure so we're going up a level
+  --level;
 }
 
 void statement() {
@@ -378,7 +378,6 @@ Symbol* findInTable(char *ident) {
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
-      // printf("Symbol name: %s\tSymbol level: %d\tLevel: %d\n", symbolTable[i]->name, symbolTable[i]->level, level);
       // If the level is the same, make sure that the current procedure
       // is the same as the procedure this is defined in.
       if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
