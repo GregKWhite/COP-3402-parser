@@ -288,7 +288,6 @@ void statement() {
   else if (token->type == ifsym) {
 
     // Parse the conditional for the "if" statement.
-    getToken();
     condition();
 
     // "if" must be followed by "then".
@@ -350,6 +349,7 @@ void condition() {
 
   // Otherwise, the condition is "expression rel-op expression"
   else {
+    getToken();
     expression();
 
     // If we don't find a relation operator,
@@ -443,12 +443,6 @@ Symbol* findInTable(char *ident) {
     // Check to see that the identifiers are in the same
     // or higher schope.
     if (symbolTable[i]->level <= level) {
-      // If the level is the same, make sure that the current procedure
-      // is the same as the procedure this is defined in.
-      if (strcmp(symbolTable[i]->procIdent, scopes[level]) != 0) {
-        continue;
-      }
-
       // Check to see that the identifiers have the same name
       if (strcmp(ident, symbolTable[i]->name) == 0) {
         return symbolTable[i];
